@@ -1,5 +1,7 @@
 #include "MyEventReceiver.h"
 
+extern IVideoModeList *modeList;
+extern IGUIComboBox *VideoMode;
 
 MyEventReceiver::MyEventReceiver(SAppContext& Context) : Context(Context)
 {
@@ -141,12 +143,8 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 			case EGET_COMBO_BOX_CHANGED:
 			if(id == GUI_ID_VIDEO_MODE)
 			{
-				u32 val = Context.VideoMode->getItemData ( Context.VideoMode->getSelected() );
-				Context.Width = val >> 16;
-				Context.Height = val & 0xFFFF;
-				//Context.VideoMode->setSelected (  val );
-				cout<<Context.Width<<endl;
-				cout<<Context.Height<<endl;
+				Context.comboBox=1;
+				Context.gui->clear();
 			}
 			return true;
 			break;

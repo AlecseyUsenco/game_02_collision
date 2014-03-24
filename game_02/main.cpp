@@ -29,14 +29,15 @@ enum
 #endif
 
 extern int width=1366, height=768;
-extern IrrlichtDevice* device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, true, false, false, 0);
+extern IrrlichtDevice* device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, false, false, false, 0);
 extern ISceneManager* smgr=device->getSceneManager();
 extern IVideoDriver* driver=device->getVideoDriver();
+//extern 	IVideoModeList *modeList;
 
 int main()
 {
 	////////////////////////////////////////////////////////////////////
-	int menu=0, sound, return_game=0, lastFPS = -1, fps;
+	int menu=0, sound, return_game=0, lastFPS = -1, fps, comboBox=1;
 	int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0;
 	float roat=90, i=0, speed=0, spead_old=0, MoveX=-1, MoveZ=0, RXA=621, RZA=0, lookat_cameraOld=0;
 	char buf[256];
@@ -51,6 +52,7 @@ int main()
 	aabbox3d<float> bboxStreetCar;
 	ISceneNode *selectedSceneNode;
 	IGUIEnvironment *gui = device->getGUIEnvironment();
+	IVideoModeList *modeList = device->getVideoModeList();
 
 	ISoundEngine* engine = createIrrKlangDevice();
 	ISoundEngine* dvigatel = createIrrKlangDevice();
@@ -63,7 +65,6 @@ int main()
 
 	IGUIComboBox *VideoMode = gui->addComboBox(rect<s32>( 550, 359, 760, 376 ), 0, GUI_ID_VIDEO_MODE);
 	gui->clear();
-	IVideoModeList *modeList = device->getVideoModeList();
 	IGUIScrollBar* Gamma;
 
 	IAnimatedMesh* mesh=smgr->getMesh("../models/Track_14.3ds");
@@ -99,6 +100,7 @@ int main()
 	MyEventReceiver receiver(context_game);
 	device->setEventReceiver(&receiver);
 
+	context_game.menu=4;
 	//////////////////////////////////////////////////////////////////////
 	while(context_game.menu!=100)
 	{
@@ -111,6 +113,7 @@ int main()
 			gui=device->getGUIEnvironment();
 			driver=device->getVideoDriver();
 			engine->play2D("../audio/Undeground.mp3", true);
+			modeList = device->getVideoModeList();
 		}
 
 		speadXCeloe=0, Old_roat=0, read=0, start=0, new_game=1, SetIdent=0;
@@ -304,37 +307,40 @@ int main()
 				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK, L"Back");
 
 				gui->addStaticText(L"   Video Mode",rect<s32>(450,350,535,385), false , true, (IGUIElement*)0, -1, true);
-				VideoMode = gui->addComboBox(rect<s32>( 550, 359, 760, 376 ), 0, GUI_ID_VIDEO_MODE);
-				if(modeList)
+
+				if(comboBox=1)
 				{
-					s32 i;
-					for(i=0; i!=modeList->getVideoModeCount(); ++i)
+					VideoMode = gui->addComboBox(rect<s32>( 550, 359, 760, 376 ), 0, GUI_ID_VIDEO_MODE);
+					if(modeList)
 					{
-						u16 d = modeList->getVideoModeDepth(i);
-						if(d<16)
-						continue;
+						s32 i;
+						for(i=0; i!=modeList->getVideoModeCount(); ++i)
+						{
+							u16 d = modeList->getVideoModeDepth(i);
+							if(d<16)
+							continue;
 
-						u16 w = modeList->getVideoModeResolution ( i ).Width;
-						u16 h = modeList->getVideoModeResolution ( i ).Height;
-						u32 val = w << 16 | h;
+							u16 w = modeList->getVideoModeResolution ( i ).Width;
+							u16 h = modeList->getVideoModeResolution ( i ).Height;
+							u32 val = w << 16 | h;
 
-						if ( VideoMode->getIndexForItemData ( val ) >= 0 )
-						continue;
+							if ( VideoMode->getIndexForItemData ( val ) >= 0 )
+							continue;
 
-						f32 aspect = (f32) w / (f32) h;
-						const c8 *a = "";
-						if ( core::equals ( aspect, 1.3333333333f ) ) a = "4:3";
-						else if ( core::equals ( aspect, 1.6666666f ) ) a = "15:9 widescreen";
-						else if ( core::equals ( aspect, 1.7777777f ) ) a = "16:9 widescreen";
-						else if ( core::equals ( aspect, 1.6f ) ) a = "16:10 widescreen";
-						else if ( core::equals ( aspect, 2.133333f ) ) a = "20:9 widescreen";
-						snprintf ( buf, sizeof ( buf ), "%d x %d, %s",w, h, a );
-						VideoMode->addItem ( stringw ( buf ).c_str(), val ); // receiver.Context.
+							f32 aspect = (f32) w / (f32) h;
+							const c8 *a = "";
+							if ( core::equals ( aspect, 1.3333333333f ) ) a = "4:3";
+							else if ( core::equals ( aspect, 1.6666666f ) ) a = "15:9 widescreen";
+							else if ( core::equals ( aspect, 1.7777777f ) ) a = "16:9 widescreen";
+							else if ( core::equals ( aspect, 1.6f ) ) a = "16:10 widescreen";
+							else if ( core::equals ( aspect, 2.133333f ) ) a = "20:9 widescreen";
+							snprintf ( buf, sizeof ( buf ), "%d x %d, %s",w, h, a );
+							VideoMode->addItem ( stringw ( buf ).c_str(), val ); // receiver.Context.
+						}
 					}
+					VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
+					comboBox=0;
 				}
-			
-				VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
-				receiver.Context.VideoMode = VideoMode;
 
 				gui->addButton(rect< s32 >(780,357,820,375), 0, GUI_ID_SET, L"Set");
 
@@ -352,9 +358,28 @@ int main()
 				driver->endScene();
 			}
 
-			// Разрешение
+			// Выбор разрешения
+			if(context_game.comboBox==1)
+			{
+				u32 val = VideoMode->getItemData ( VideoMode->getSelected() );
+				deviceParam.WindowSize.Width = val >> 16;
+				deviceParam.WindowSize.Height = val & 0xFFFF;
+				cout<<val<<endl;
+				cout<<deviceParam.WindowSize.Width<<endl;
+				cout<<deviceParam.WindowSize.Height<<endl;
+				//VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
+				comboBox=1;
+			}
+
+			// Установка разрешение
 			if(context_game.menu==12)
 			{
+				u32 val = VideoMode->getItemData ( VideoMode->getSelected() );
+				deviceParam.WindowSize.Width = val >> 16;
+				deviceParam.WindowSize.Height = val & 0xFFFF;
+				VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
+				width = val >> 16;
+				height = val & 0xFFFF;
 				device->closeDevice();
 			}
 
