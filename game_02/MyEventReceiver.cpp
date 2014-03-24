@@ -113,6 +113,12 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 				return true;
 				break;
 
+				case GUI_ID_MEIN_MENU:
+				Context.gui->clear();
+				Context.menu=0;
+				return true;
+				break;
+
 				default:
 				return false;
 			}

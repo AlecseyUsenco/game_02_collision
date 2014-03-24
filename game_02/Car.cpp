@@ -4,8 +4,8 @@ extern ISceneManager *smgr;
 
 Car::Car(void)
 {
-	car_position=vector3df(6400,-3,0);
-	hero_position=vector3df(10000,77,300);
+	car_position=vector3df(4000,10,-200);
+	hero_position=vector3df(10000,100,300);
 	hero_roat=vector3df(90,-140,0);
 }
 
@@ -50,12 +50,12 @@ void Car::Show_Enemy(int LongRoad_X, int LongRoad_Y, int LongRoad_Z, int sped, i
 	node->setRotation(vector3df(0,roat,0));
 	node->setPosition(car_position);
 	node->setVisible(true);
-	//ISceneNodeAnimator* anim = smgr->createFlyStraightAnimator(core::vector3df(car_position.X,car_position.Y,car_position.Z), core::vector3df(car_position.X+LongRoad_X,car_position.Y+LongRoad_Y,car_position.Z+LongRoad_Z), sped, true);
-	//if (anim)
-	//{
-	//node->addAnimator(anim);
-	//anim->drop();
-	//}
+	ISceneNodeAnimator* anim = smgr->createFlyStraightAnimator(core::vector3df(car_position.X,car_position.Y,car_position.Z), core::vector3df(car_position.X+LongRoad_X,car_position.Y+LongRoad_Y,car_position.Z+LongRoad_Z), sped, true);
+	if (anim)
+	{
+	node->addAnimator(anim);
+	anim->drop();
+	}
 }
 
 void Car::Show_Player()

@@ -29,16 +29,27 @@ enum
 #endif
 
 extern int width=1366, height=768;
-extern IrrlichtDevice* device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 16, false, false, false, 0);
+extern IrrlichtDevice* device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, true, false, false, 0);
 extern ISceneManager* smgr=device->getSceneManager();
 extern IVideoDriver* driver=device->getVideoDriver();
 
 int main()
 {
-	// Тестовое изминение для ГитХаба
-
 	////////////////////////////////////////////////////////////////////
-	int menu=0;
+	int menu=0, sound, return_game=0, lastFPS = -1, fps;
+	int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0;
+	float roat=90, i=0, speed=0, spead_old=0, MoveX=-1, MoveZ=0, RXA=621, RZA=0, lookat_cameraOld=0;
+	char buf[256];
+	line3d<f32>ray;
+	vector3df position_camera, lookat_camera, intersection;
+	triangle3df hitTriangle;
+	f32 GammaValue=1.f;
+	Car Hero;
+	Hero.Create(2, vector3df(0.006,0.005,0.005));
+	Car streat_car;
+	aabbox3d<float> bboxHero;
+	aabbox3d<float> bboxStreetCar;
+	ISceneNode *selectedSceneNode;
 	IGUIEnvironment *gui = device->getGUIEnvironment();
 
 	ISoundEngine* engine = createIrrKlangDevice();
@@ -55,6 +66,29 @@ int main()
 	IVideoModeList *modeList = device->getVideoModeList();
 	IGUIScrollBar* Gamma;
 
+	IAnimatedMesh* mesh=smgr->getMesh("../models/Track_14.3ds");
+	IAnimatedMesh* garage=smgr->getMesh("../models/Garage.3ds");
+	ISceneNode *node = 0, *room = 0;
+	node = smgr->addOctreeSceneNode(mesh->getMesh(0), 0, IDFlag_IsPickable);
+	room=smgr->addMeshSceneNode(garage);
+	node->setRotation(vector3df(0,90,0));
+	room->setRotation(vector3df(0,-90,0));
+	node->setScale(core::vector3df(30,23,30));
+	room->setScale(core::vector3df(11,11,11));
+	node->setMaterialFlag(video::EMF_LIGHTING, false);
+	room->setMaterialFlag(video::EMF_LIGHTING, false);
+	room->setPosition(vector3df(10000,0,300));
+
+	ITriangleSelector* selector = 0;
+	selector = smgr->createOctreeTriangleSelector(mesh->getMesh(0), node, 128);
+	node->setTriangleSelector(selector);
+	ICameraSceneNode* camera;
+	ISceneNodeAnimator* anim;
+	ISceneNode* highlightedSceneNode = 0;
+	SMaterial material;
+	ISceneNode* skydome;
+	ISceneCollisionManager* collMan = smgr->getSceneCollisionManager();
+
 	SAppContext context_game;
 	context_game.device = device;
 	context_game.gui=gui;
@@ -64,7 +98,7 @@ int main()
 	context_game.VideoMode=VideoMode;
 	MyEventReceiver receiver(context_game);
 	device->setEventReceiver(&receiver);
-	
+
 	//////////////////////////////////////////////////////////////////////
 	while(context_game.menu!=100)
 	{
@@ -72,12 +106,18 @@ int main()
 		{
 			engine->stopAllSounds();
 			context_game.menu=0;
-			device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 16, true, false, false, &receiver);
+			device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, true, false, false, &receiver);
 			smgr=device->getSceneManager();
 			gui=device->getGUIEnvironment();
 			driver=device->getVideoDriver();
 			engine->play2D("../audio/Undeground.mp3", true);
 		}
+
+		speadXCeloe=0, Old_roat=0, read=0, start=0, new_game=1, SetIdent=0;
+		roat=90, i=0, speed=0, spead_old=0, MoveX=-1, MoveZ=0, RXA=621, RZA=0, lookat_cameraOld=0;
+
+		position_camera=vector3df(10721,220,300);
+		lookat_camera=vector3df(1000,300,300);
 
 		context_game.device = device;
 		context_game.gui=gui;
@@ -88,66 +128,19 @@ int main()
 		MyEventReceiver receiver(context_game);
 		device->setEventReceiver(&receiver);
 
-		int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0;
-		float roat=90, i=0, speed=0, spead_old=0, MoveX=-1, MoveZ=0, RXA=621, RZA=0, lookat_cameraOld=0;
-		char buf[256];
-		f32 GammaValue=1.f;
-		vector3df position_camera=vector3df(10721,220,300);
-		vector3df lookat_camera=vector3df(1000,300,300);
-		ICameraSceneNode* camera = smgr->addCameraSceneNode(0,position_camera,lookat_camera);
+		Hero.Show_Player();
+		Hero.node->setID(IDFlag_IsPickable);
 
-		IAnimatedMesh* mesh=smgr->getMesh("../models/Track_12.3ds");
-		IAnimatedMesh* garage=smgr->getMesh("../models/Garage.3ds");
-		IMeshSceneNode *node = 0, *room = 0;
-		video::SMaterial material;
+		camera = smgr->addCameraSceneNode(0,position_camera,lookat_camera, ID_IsNotPickable);
+		anim = smgr->createCollisionResponseAnimator(selector, Hero.node, vector3df(1,1,1), vector3df(0,0,0), vector3df(0,30,0));
+		selector->drop();
+		camera->addAnimator(anim);
+		anim->drop();
 
-		node=smgr->addMeshSceneNode(mesh);
-		room=smgr->addMeshSceneNode(garage);
-
-		if (mesh)
-		{
-			node = smgr->addOctreeSceneNode(mesh->getMesh(0), 0, IDFlag_IsPickable);
-		}
-		scene::ITriangleSelector* selector = 0;
-		if (node)
-		{
-
-			selector = smgr->createOctreeTriangleSelector(node->getMesh(), node, 128);
-			node->setTriangleSelector(selector);
-		}
-		if (selector)
-		{
-			scene::ISceneNodeAnimator* anim = smgr->createCollisionResponseAnimator(
-			selector, camera, core::vector3df(30,50,30),
-			core::vector3df(0,-10,0), core::vector3df(0,30,0));
-			selector->drop(); // As soon as we're done with the selector, drop it.
-			camera->addAnimator(anim);
-			anim->drop();  // And likewise, drop the animator when we're done referring to it.
-		}
-
-			scene::IBillboardSceneNode * bill = smgr->addBillboardSceneNode();
-			bill->setMaterialType(video::EMT_TRANSPARENT_ADD_COLOR );
-			bill->setMaterialTexture(0, driver->getTexture("../models/particle.bmp"));
-			bill->setMaterialFlag(video::EMF_LIGHTING, false);
-			bill->setMaterialFlag(video::EMF_ZBUFFER, false);
-			bill->setSize(core::dimension2d<f32>(20.0f, 20.0f));
-			bill->setID(ID_IsNotPickable);
-
-		scene::ISceneNode* highlightedSceneNode = 0;
-		scene::ISceneCollisionManager* collMan = smgr->getSceneCollisionManager();
-		material.Wireframe=true;
-
-		node->setRotation(vector3df(0,90,0));
-		room->setRotation(vector3df(0,-90,0));
-		node->setScale(core::vector3df(30,23,30));
-		room->setScale(core::vector3df(11,11,11));
-		node->setMaterialFlag(video::EMF_LIGHTING, false);
-		room->setMaterialFlag(video::EMF_LIGHTING, false);
-		room->setPosition(vector3df(10000,0,300));
 		room->setVisible(true);
 		node->setVisible(false);
-		node->setID(IDFlag_IsPickable);
-		ISceneNode* skydome=smgr->addSkyDomeSceneNode(driver->getTexture("../models/skydome.jpg"),16,8,0.95f,2.0f);
+
+		skydome=smgr->addSkyDomeSceneNode(driver->getTexture("../models/skydome.jpg"),16,8,0.95f,2.0f);
 		driver->setTextureCreationFlag(video::ETCF_CREATE_MIP_MAPS, true);
 
 		gui = device->getGUIEnvironment();
@@ -155,24 +148,55 @@ int main()
 		IGUIFont* font = gui->getFont("../models/fonthaettenschweiler.bmp");
 		if (font) skin->setFont(font);
 
-		Car streat_car[2];
-		streat_car[0].Create(0, vector3df(1.45,1.45,1.45)); // Ferrari 0.2,0.15,0.175
-		streat_car[0].Show_Enemy(-1600,0,0,5000,0);
-		Car Hero;
-		Hero.Create(2, vector3df(0.006,0.005,0.005));
-		Hero.Show_Player();
-		Hero.node->setID(IDFlag_IsPickable);
+		anim = smgr->createCollisionResponseAnimator(selector, Hero.node, vector3df(10,10,10), vector3df(0,-10,0), vector3df(0,0,0));
+		selector->drop();
+		camera->addAnimator(anim);
+		anim->drop();
 
 		while(device->run())
 		{
 			if(device->isWindowActive())
 			{
-			ICameraSceneNode* camera = smgr->addCameraSceneNode(0,position_camera,lookat_camera);
-			camera->setFarValue(30000);
+				camera = smgr->addCameraSceneNode(0,position_camera, lookat_camera, ID_IsNotPickable);
+				camera->setFarValue(27000);
+				ray.start = camera->getPosition();
+				ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 700.0f;
+				selectedSceneNode = collMan->getSceneNodeAndCollisionPointFromRay( ray, intersection, hitTriangle, IDFlag_IsPickable, 0); 
+
+				if(selectedSceneNode)
+				{
+					speed=0;
+					
+					driver->setTransform(video::ETS_WORLD, core::matrix4());
+					driver->setMaterial(material);
+					driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
+
+					if((selectedSceneNode->getID() & IDFlag_IsHighlightable) == IDFlag_IsHighlightable)
+					{
+						highlightedSceneNode = selectedSceneNode;
+
+						highlightedSceneNode->setMaterialFlag(video::EMF_LIGHTING, false);
+					}
+				}
 
 			// Главное меню
 			if(context_game.menu==0)
 			{
+				if(return_game==1)
+				{
+					new_game=1;
+					engine->stopAllSounds();
+					engine->play2D("../audio/Undeground.mp3", true);
+					room->setVisible(true);
+					node->setVisible(false);
+					Hero.hero_position=vector3df(10000,100,300);
+					Hero.hero_roat=vector3df(90,-140,0);
+					Hero.node->setRotation(vector3df(90,-140,0));
+					position_camera=vector3df(10721,220,300);
+					lookat_camera=vector3df(1000,300,300);
+					return_game=0;
+				}
+
 				driver->beginScene(true, true, SColor(255,255,255,255));
 				gui->addButton(rect< s32 >(10,254,200,296), 0, GUI_ID_KARER, L"Karer");
 				gui->addButton(rect< s32 >(10,306,200,348), 0, GUI_ID_FAST_START, L"Fast Start");
@@ -331,63 +355,54 @@ int main()
 			// Разрешение
 			if(context_game.menu==12)
 			{
-				//context_game.menu=0;
 				device->closeDevice();
-				/*device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 16, true, false, false, &receiver);
-				smgr=device->getSceneManager();
-				driver=device->getVideoDriver();
-				cout<<context_game.menu<<endl;*/
 			}
 
 			// Игра
 			if(context_game.menu==2)
 			{
-
-				if (highlightedSceneNode)
+				fps = driver->getFPS();
+				if (lastFPS != fps)
 				{
-					highlightedSceneNode->setMaterialFlag(video::EMF_LIGHTING, true);
-					highlightedSceneNode = 0;
+					stringw str = L"[";
+					str += driver->getName();
+					str += "] FPS:";
+					str += fps;
+					device->setWindowCaption(str.c_str());
+					lastFPS = fps;
 				}
-				core::line3d<f32>ray;
-				ray.start = camera->getPosition();
-				ray.end = ray.start + (camera->getTarget() - ray.start).normalize() * 1000.0f;
-
-				core::vector3df intersection;
-				core::triangle3df hitTriangle;
-
-				scene::ISceneNode * selectedSceneNode =
-				collMan->getSceneNodeAndCollisionPointFromRay( ray,
-				intersection, // точка столкновения
-				hitTriangle, // полигон(треугольник) в котором точка столкновения
-				IDFlag_IsPickable, // определять столкновения только для нод с идентификатором IDFlag_IsPickable
-				0); 
-
-				if(selectedSceneNode)
-				{
-					bill->setPosition(intersection); // Hero.node
-					Hero.node->setPosition(intersection);
-					driver->setTransform(video::ETS_WORLD, core::matrix4());
-					driver->setMaterial(material);
-					driver->draw3DTriangle(hitTriangle, video::SColor(0,255,0,0));
-
-					if((selectedSceneNode->getID() & IDFlag_IsHighlightable) == IDFlag_IsHighlightable)
-					{
-						highlightedSceneNode = selectedSceneNode;
-
-						highlightedSceneNode->setMaterialFlag(video::EMF_LIGHTING, false);
-					}
-				}
-
 				if(new_game==1)
 				{
 					engine->stopAllSounds();
-					engine->play2D("../audio/Static_X.mp3");
+					sound = rand() % 4;
+					if(sound==1) { engine->play2D("../audio/Static_X.mp3"); }
+					if(sound==2) { engine->play2D("../audio/BrokenPromis.mp3"); }
+					if(sound==3) { engine->play2D("../audio/Junkie XL.mp3"); }
+					if(sound==4) { engine->play2D("../audio/Skindred.mp3"); }
+					Hero.hero_position=vector3df(10000,100,85);
+					Hero.hero_roat=vector3df(90,90,0);
+					position_camera=vector3df(10621,300,85);
+					lookat_camera=vector3df(1000,200,85);
+					speed=0;
 					read=0;
+					new_game=0;
+					return_game=1;
 					room->setVisible(false);
 					node->setVisible(true);
-					Hero.hero_roat=vector3df(90,90,0);
-					position_camera=vector3df(10621,300,300);
-					new_game=0;
+					streat_car.Create(0, vector3df(1.45,1.45,1.45)); // Ferrari 0.2,0.15,0.175
+					streat_car.Show_Enemy(10000,0,0,8000,180);
+				}
+
+				bboxHero =  Hero.node->getTransformedBoundingBox();
+				bboxHero.MinEdge+=Hero.node->getPosition();
+				bboxHero.MaxEdge+=Hero.node->getPosition();
+				bboxStreetCar =  streat_car.node->getTransformedBoundingBox();
+				bboxStreetCar.MinEdge+=streat_car.node->getPosition();
+				bboxStreetCar.MaxEdge+=streat_car.node->getPosition();
+
+				if(bboxHero.intersectsWithBox(bboxStreetCar))
+				{
+					speed=0;
 				}
 
 				Hero.Move(speed*MoveX,0,speed*MoveZ);
@@ -398,37 +413,44 @@ int main()
 				{
 					dvigatel->stopAllSounds(); 
 					gui->addStaticText(L"	0",rect<s32>(125,670,175,710), false , true, (IGUIElement*)0, -1, true);
+					IGUIButton *BACK = gui->addButton(rect<s32>(1300,5,1360,30), 0, GUI_ID_MEIN_MENU, L"Menu");
 				}
 
 				if(speed>0)
 				{
-					speed-=0.005;
-					speadXCeloe=5*speed;
+					//speed-=0.02;
+					speadXCeloe=speed*3;
 					gui->clear();
 					stringw Speed(speadXCeloe);
 					gui->addStaticText(Speed.c_str(),rect<s32>(125,670,175,710), false , true, (IGUIElement*)0, -1, true);
+					IGUIButton *BACK = gui->addButton(rect<s32>(1300,5,1360,30), 0, GUI_ID_MEIN_MENU, L"Menu");
 				}
-
+				if(speed<0)
+				{
+					speed+=0.02;
+				}
 				//Кнопки
 				if(receiver.IsKeyDown(irr::KEY_KEY_W))
 				{
 					if(speed<10)
 					{ 
-						speed+=0.03; 
-						if(speed<=0.03)
+						speed+=0.04; 
+						if(speed<=0.05)
 						{
 							dvigatel->play2D("../audio/dvigatel.mp3",true);
 						}
 					}
-					if(speed>=10 && speed<18) { speed+=0.015; }
-					if(speed>=18 && speed<25) {	speed+=0.01; }
+					if(speed>=10 && speed<18) { speed+=0.03; }
+					if(speed>=18 && speed<35) {	speed+=0.02; }
+					else {speed+=0.001; }
 				}
 
 				if(receiver.IsKeyDown(irr::KEY_KEY_S))
 				{
-					speed-=0.09;
+					speed-=0.1;
 					tormoz->stopAllSounds();
 					tormoz->play2D("../audio/Tormozov.mp3");
+					if(speed>0) {speed-=0.4;}
 				}
 
 				if(receiver.IsKeyDown(irr::KEY_KEY_A))
