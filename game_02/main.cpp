@@ -62,8 +62,8 @@ int main()
 
 	engine->play2D("../audio/Undeground.mp3", true);
 	SIrrlichtCreationParameters deviceParam;
-	deviceParam.WindowSize.Width;
-	deviceParam.WindowSize.Height;
+	deviceParam.WindowSize.Width=1366;
+	deviceParam.WindowSize.Height=768;
 
 	IGUIComboBox *VideoMode = gui->addComboBox(rect<s32>( 550, 359, 760, 376 ), 0, GUI_ID_VIDEO_MODE);
 	gui->clear();
@@ -96,8 +96,6 @@ int main()
 	context_game.device = device;
 	context_game.gui=gui;
 	context_game.menu=menu;
-	context_game.Width=width;
-	context_game.Height=height;
 	context_game.VideoMode=VideoMode;
 	MyEventReceiver receiver(context_game);
 	device->setEventReceiver(&receiver);
@@ -109,7 +107,7 @@ int main()
 		if(context_game.menu==12)
 		{
 			engine->stopAllSounds();
-			device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(deviceParam.WindowSize.Width, deviceParam.WindowSize.Height), 32, true, false, false, &receiver);
+			device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(deviceParam.WindowSize.Width, deviceParam.WindowSize.Height), 32, true, false, false, 0);
 			smgr=device->getSceneManager();
 			gui=device->getGUIEnvironment();
 			driver=device->getVideoDriver();
@@ -127,8 +125,6 @@ int main()
 		context_game.device = device;
 		context_game.gui=gui;
 		context_game.menu=menu;
-		context_game.Width=width;
-		context_game.Height=height;
 		context_game.VideoMode=VideoMode;
 		MyEventReceiver receiver(context_game);
 		device->setEventReceiver(&receiver);
@@ -353,7 +349,6 @@ int main()
 			{
 				deviceParam.WindowSize.Width=receiver.width;
 				deviceParam.WindowSize.Height=receiver.height;
-				VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
 				context_game.comboBox==0;
 			}
 

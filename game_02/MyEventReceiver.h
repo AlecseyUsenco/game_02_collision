@@ -14,8 +14,6 @@ struct SAppContext
 	s32 menu;
 	s32 comboBox;
 	s32 old_menu;
-	s32 Width;
-	s32 Height;
 	IGUIComboBox *VideoMode;
 };
 
