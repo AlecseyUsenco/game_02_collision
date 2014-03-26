@@ -37,7 +37,7 @@ extern IVideoDriver* driver=device->getVideoDriver();
 int main()
 {
 	////////////////////////////////////////////////////////////////////
-	int menu=0, sound, return_game=0, lastFPS = -1, fps, comboBox=1;
+	int menu=0, sound, return_game=0, lastFPS = -1, fps, OptionsCreate=0;
 	int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0;
 	float roat=90, i=0, speed=0, spead_old=0, MoveX=-1, MoveZ=0, RXA=621, RZA=0, lookat_cameraOld=0;
 	char buf[256];
@@ -52,6 +52,8 @@ int main()
 	aabbox3d<float> bboxStreetCar;
 	ISceneNode *selectedSceneNode;
 	IGUIEnvironment *gui = device->getGUIEnvironment();
+	IGUIScrollBar* Sound;
+	IGUIScrollBar* Efect;
 	IVideoModeList *modeList = device->getVideoModeList();
 
 	ISoundEngine* engine = createIrrKlangDevice();
@@ -107,13 +109,13 @@ int main()
 		if(context_game.menu==12)
 		{
 			engine->stopAllSounds();
-			context_game.menu=0;
-			device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, true, false, false, &receiver);
+			device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(deviceParam.WindowSize.Width, deviceParam.WindowSize.Height), 32, true, false, false, &receiver);
 			smgr=device->getSceneManager();
 			gui=device->getGUIEnvironment();
 			driver=device->getVideoDriver();
 			engine->play2D("../audio/Undeground.mp3", true);
 			modeList = device->getVideoModeList();
+			context_game.menu=0;
 		}
 
 		speadXCeloe=0, Old_roat=0, read=0, start=0, new_game=1, SetIdent=0;
@@ -135,7 +137,7 @@ int main()
 		Hero.node->setID(IDFlag_IsPickable);
 
 		camera = smgr->addCameraSceneNode(0,position_camera,lookat_camera, ID_IsNotPickable);
-		anim = smgr->createCollisionResponseAnimator(selector, Hero.node, vector3df(1,1,1), vector3df(0,0,0), vector3df(0,30,0));
+		anim = smgr->createCollisionResponseAnimator(selector, Hero.node, vector3df(30,60,30), vector3df(0,-10,0), vector3df(0,0,0));
 		selector->drop();
 		camera->addAnimator(anim);
 		anim->drop();
@@ -150,11 +152,6 @@ int main()
 		IGUISkin* skin = gui->getSkin();
 		IGUIFont* font = gui->getFont("../models/fonthaettenschweiler.bmp");
 		if (font) skin->setFont(font);
-
-		anim = smgr->createCollisionResponseAnimator(selector, Hero.node, vector3df(10,10,10), vector3df(0,-10,0), vector3df(0,0,0));
-		selector->drop();
-		camera->addAnimator(anim);
-		anim->drop();
 
 		while(device->run())
 		{
@@ -181,6 +178,7 @@ int main()
 						highlightedSceneNode->setMaterialFlag(video::EMF_LIGHTING, false);
 					}
 				}
+			OptionsCreate=0;
 
 			// Главное меню
 			if(context_game.menu==0)
@@ -292,25 +290,28 @@ int main()
 				gui->drawAll();
 				driver->endScene();
 			}
+
 			// Опции
 			if(context_game.menu==4)
 			{
 				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addStaticText(L"   Sound Volume",rect<s32>(450,200,535,235), false , true, (IGUIElement*)0, -1, true);
-				IGUIScrollBar* scrollbar1 = gui->addScrollBar(true,rect<s32>(550,209,760,226), 0, GUI_ID_TRANSPARENCY_SCROLL_BAR);
-				scrollbar1->setMax(255);
-				scrollbar1->setPos(gui->getSkin()->getColor(EGDC_WINDOW).getAlpha());
-				gui->addStaticText(L"   Efect Volume",rect<s32>(450,250,535,285), false , true, (IGUIElement*)0, -1, true);
-				IGUIScrollBar* scrollbar2 = gui->addScrollBar(true,rect<s32>(550,259,760,276), 0, GUI_ID_TRANSPARENCY_SCROLL_BAR);
-				scrollbar2->setMax(255);
-				scrollbar2->setPos(gui->getSkin()->getColor(EGDC_WINDOW).getAlpha());
-				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK, L"Back");
-
-				gui->addStaticText(L"   Video Mode",rect<s32>(450,350,535,385), false , true, (IGUIElement*)0, -1, true);
-
-				if(comboBox=1)
+				if(OptionsCreate==0)
 				{
+					gui->addStaticText(L"   Sound Volume",rect<s32>(450,200,535,235), false , true, (IGUIElement*)0, -1, true);
+					Sound = gui->addScrollBar(true,rect<s32>(550,209,760,226),0,-1);
+					gui->addStaticText(L"   Efect Volume",rect<s32>(450,250,535,285), false , true, (IGUIElement*)0, -1, true);
+					Efect = gui->addScrollBar(true,rect<s32>(550,259,760,276),0,-1);
+					gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK, L"Back");
+					gui->addStaticText(L"   Video Mode",rect<s32>(450,350,535,385), false , true, (IGUIElement*)0, -1, true);
 					VideoMode = gui->addComboBox(rect<s32>( 550, 359, 760, 376 ), 0, GUI_ID_VIDEO_MODE);
+					gui->addButton(rect< s32 >(780,357,820,375), 0, GUI_ID_SET, L"Set");
+					gui->addStaticText ( L"   Gamma:", rect<s32>(450,300,535,335), false, true, 0, -1, true );
+					Gamma = gui->addScrollBar( true, rect<s32>( 550, 310, 760, 327 ), 0, GUI_ID_TRANSPARENCY_SCROLL_BAR );
+					Gamma->setMin ( 50 );
+					Gamma->setMax(255);
+					Gamma->setSmallStep ( 1 );
+					Gamma->setLargeStep ( 2 );
+					Gamma->setPos(gui->getSkin()->getColor(EGDC_WINDOW).getAlpha());
 					if(modeList)
 					{
 						s32 i;
@@ -335,54 +336,33 @@ int main()
 							else if ( core::equals ( aspect, 1.6f ) ) a = "16:10 widescreen";
 							else if ( core::equals ( aspect, 2.133333f ) ) a = "20:9 widescreen";
 							snprintf ( buf, sizeof ( buf ), "%d x %d, %s",w, h, a );
-							VideoMode->addItem ( stringw ( buf ).c_str(), val ); // receiver.Context.
+							VideoMode->addItem ( stringw ( buf ).c_str(), val );
+							VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
+							OptionsCreate=1;
 						}
 					}
-					VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
-					comboBox=0;
 				}
-
-				gui->addButton(rect< s32 >(780,357,820,375), 0, GUI_ID_SET, L"Set");
-
-				gui->addStaticText ( L"   Gamma:", rect<s32>(450,300,535,335), false, true, 0, -1, true );
-				Gamma = gui->addScrollBar( true, rect<s32>( 550, 311, 760, 326 ), 0,-1 );
-				Gamma->setMin ( 50 );
-				Gamma->setMax ( 350 );
-				Gamma->setSmallStep ( 1 );
-				Gamma->setLargeStep ( 10 );
-				Gamma->setPos ( core::floor32 ( GammaValue * 100.f ) );
-				device->setGammaRamp ( GammaValue, GammaValue, GammaValue, 0.f, 0.f );
 
 				smgr->drawAll();
 				gui->drawAll();
 				driver->endScene();
 			}
 
-			// Выбор разрешения
+			// Выбор Разрешения
 			if(context_game.comboBox==1)
 			{
-				u32 val = VideoMode->getItemData ( VideoMode->getSelected() );
-				deviceParam.WindowSize.Width = val >> 16;
-				deviceParam.WindowSize.Height = val & 0xFFFF;
-				cout<<val<<endl;
-				cout<<deviceParam.WindowSize.Width<<endl;
-				cout<<deviceParam.WindowSize.Height<<endl;
-				//VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
-				comboBox=1;
+				deviceParam.WindowSize.Width=receiver.width;
+				deviceParam.WindowSize.Height=receiver.height;
+				VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
+				context_game.comboBox==0;
 			}
 
 			// Установка разрешение
 			if(context_game.menu==12)
 			{
-				u32 val = VideoMode->getItemData ( VideoMode->getSelected() );
-				deviceParam.WindowSize.Width = val >> 16;
-				deviceParam.WindowSize.Height = val & 0xFFFF;
-				VideoMode->setSelected ( VideoMode->getIndexForItemData ( deviceParam.WindowSize.Width << 16 | deviceParam.WindowSize.Height ) );
-				width = val >> 16;
-				height = val & 0xFFFF;
 				device->closeDevice();
 			}
-
+			
 			// Игра
 			if(context_game.menu==2)
 			{
@@ -415,19 +395,19 @@ int main()
 					room->setVisible(false);
 					node->setVisible(true);
 					streat_car.Create(0, vector3df(1.45,1.45,1.45)); // Ferrari 0.2,0.15,0.175
-					streat_car.Show_Enemy(10000,0,0,8000,180);
+					streat_car.Show_Enemy(6000,0,0,5000,180);
 				}
 
-				bboxHero =  Hero.node->getTransformedBoundingBox();
-				bboxHero.MinEdge+=Hero.node->getPosition();
-				bboxHero.MaxEdge+=Hero.node->getPosition();
-				bboxStreetCar =  streat_car.node->getTransformedBoundingBox();
-				bboxStreetCar.MinEdge+=streat_car.node->getPosition();
-				bboxStreetCar.MaxEdge+=streat_car.node->getPosition();
-
-				if(bboxHero.intersectsWithBox(bboxStreetCar))
+				if(streat_car.node!=NULL)
 				{
-					speed=0;
+					bboxHero =  Hero.node->getTransformedBoundingBox();
+					bboxHero.MinEdge+=Hero.node->getPosition();
+					bboxHero.MaxEdge+=Hero.node->getPosition();
+					bboxStreetCar =  streat_car.node->getTransformedBoundingBox();
+					bboxStreetCar.MinEdge+=streat_car.node->getPosition();
+					bboxStreetCar.MaxEdge+=streat_car.node->getPosition();
+
+					if(bboxHero.intersectsWithBox(bboxStreetCar)) { speed=0; }
 				}
 
 				Hero.Move(speed*MoveX,0,speed*MoveZ);

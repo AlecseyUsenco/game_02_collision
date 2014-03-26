@@ -46,6 +46,7 @@ class MyEventReceiver : public IEventReceiver
 {
 public:
 	SAppContext& Context;
+	int width, height;
 	bool KeyIsDown[KEY_KEY_CODES_COUNT];
 	virtual bool OnEvent(const SEvent& event);
 	virtual bool IsKeyDown(EKEY_CODE keyCode);

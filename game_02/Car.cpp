@@ -50,11 +50,11 @@ void Car::Show_Enemy(int LongRoad_X, int LongRoad_Y, int LongRoad_Z, int sped, i
 	node->setRotation(vector3df(0,roat,0));
 	node->setPosition(car_position);
 	node->setVisible(true);
-	ISceneNodeAnimator* anim = smgr->createFlyStraightAnimator(core::vector3df(car_position.X,car_position.Y,car_position.Z), core::vector3df(car_position.X+LongRoad_X,car_position.Y+LongRoad_Y,car_position.Z+LongRoad_Z), sped, true);
+	anim = smgr->createFlyStraightAnimator(core::vector3df(car_position.X,car_position.Y,car_position.Z), core::vector3df(car_position.X+LongRoad_X,car_position.Y+LongRoad_Y,car_position.Z+LongRoad_Z), sped, false);
 	if (anim)
 	{
-	node->addAnimator(anim);
-	anim->drop();
+		node->addAnimator(anim);
+		anim->drop();
 	}
 }
 

@@ -143,6 +143,10 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 			case EGET_COMBO_BOX_CHANGED:
 			if(id == GUI_ID_VIDEO_MODE)
 			{
+				IGUIComboBox * vm = (IGUIComboBox *)event.GUIEvent.Caller;
+				u32 val = vm->getItemData(vm->getSelected());
+				width = val >> 16;
+				height = val & 0xFFFF;
 				Context.comboBox=1;
 				Context.gui->clear();
 			}
