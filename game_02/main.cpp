@@ -2,10 +2,10 @@
 #include<irrlicht.h>
 #include<irrKlang.h>
 
-#include "driverChoice.h"
-#include "Car.h"
-#include "Globals.h"
 #include "MyEventReceiver.h"
+#include "Globals.h"
+#include "Hero.h"
+#include "Bot.h"
 
 using namespace irr;
 using namespace scene;
@@ -29,29 +29,29 @@ enum
 #endif
 
 extern int width=1366, height=768;
-extern IrrlichtDevice* device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, false, false, false, 0);
+extern IrrlichtDevice* device=createDevice(EDT_DIRECT3D9, dimension2d<u32>(width, height), 32, true, false, false, 0);
 extern ISceneManager* smgr=device->getSceneManager();
 extern IVideoDriver* driver=device->getVideoDriver();
-//extern 	IVideoModeList *modeList;
 
 int main()
 {
 	////////////////////////////////////////////////////////////////////
-	int menu=0, sound, return_game=0, lastFPS = -1, fps, OptionsCreate=0;
-	int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0;
-	float roat=90, i=0, speed=0, spead_old=0, MoveX=-1, MoveZ=0, RXA=621, RZA=0, lookat_cameraOld=0;
+	int car = 1, textura=11, timeCeloe = 50, menu = 0, sound, return_game = 0, lastFPS = -1, fps, OptionsCreate = 0, win = 0, Bot_posX[31], Bot_posZ[31], Bot_roat[31];
+	int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0, num=0, num_sled=0, delitel=0;
+	float time, roat = 90, i = 0, speed = 0, spead_old = 0, MoveX = -1, MoveZ = 0, RXA = 621, RZA = 0, lookat_cameraOld = 0, bot_MoveX = 0, bot_MoveZ = 0, bot_roat = 0;
 	char buf[256];
 	line3d<f32>ray;
-	vector3df position_camera, lookat_camera, intersection;
+	vector3df position_camera, lookat_camera, intersection, scale_start(3.2, 3.2, 3.2), roat_start(0, -135, 0), position_start(9950, 0, 300);
 	triangle3df hitTriangle;
 	f32 GammaValue=1.f;
-	Car Hero;
-	Hero.Create(2, vector3df(0.006,0.005,0.005));
-	Car streat_car;
+	Hero Hero;
+	Bot bot;
+	Hero.Create(11, vector3df(3.2, 3.2, 3.2)); // 2, vector3df(0.006, 0.005, 0.005)
 	aabbox3d<float> bboxHero;
 	aabbox3d<float> bboxStreetCar;
 	ISceneNode *selectedSceneNode;
 	IGUIEnvironment *gui = device->getGUIEnvironment();
+	IGUIEnvironment *env = device->getGUIEnvironment();
 	IGUIScrollBar* Sound;
 	IGUIScrollBar* Efect;
 	IVideoModeList *modeList = device->getVideoModeList();
@@ -97,9 +97,12 @@ int main()
 	context_game.gui=gui;
 	context_game.menu=menu;
 	context_game.VideoMode=VideoMode;
+	context_game.car = car;
 	MyEventReceiver receiver(context_game);
 	device->setEventReceiver(&receiver);
 
+	ITimer *time_game;
+	ITimer *Old_time_game;
 	context_game.menu=4;
 	//////////////////////////////////////////////////////////////////////
 	while(context_game.menu!=100)
@@ -129,7 +132,7 @@ int main()
 		MyEventReceiver receiver(context_game);
 		device->setEventReceiver(&receiver);
 
-		Hero.Show_Player();
+		Hero.Show();
 		Hero.node->setID(IDFlag_IsPickable);
 
 		camera = smgr->addCameraSceneNode(0,position_camera,lookat_camera, ID_IsNotPickable);
@@ -186,9 +189,9 @@ int main()
 					engine->play2D("../audio/Undeground.mp3", true);
 					room->setVisible(true);
 					node->setVisible(false);
-					Hero.hero_position=vector3df(10000,100,300);
-					Hero.hero_roat=vector3df(90,-140,0);
-					Hero.node->setRotation(vector3df(90,-140,0));
+					Hero.hero_position=vector3df(9950,0,300);
+					Hero.hero_roat=vector3df(0,-135,0);
+					Hero.node->setRotation(vector3df(0,-135,0));
 					position_camera=vector3df(10721,220,300);
 					lookat_camera=vector3df(1000,300,300);
 					return_game=0;
@@ -210,53 +213,60 @@ int main()
 				driver->beginScene(true, true, SColor(255,255,255,255));
 				gui->addButton(rect< s32 >(10,252,200,296), 0, GUI_ID_START, L"Start");
 				gui->addButton(rect< s32 >(10,306,200,348), 0, GUI_ID_GARAGE, L"Garage");
-				gui->addButton(rect< s32 >(10,360,200,402), 0, GUI_ID_KARER, L"Save");
 				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK, L"Back");
 				smgr->drawAll();
 				gui->drawAll();
 				driver->endScene();
 			}
+			
 			// Гараж
 			if(context_game.menu==5)
 			{
 				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addButton(rect< s32 >(10,252,200,296), 0, GUI_ID_TUNING, L"Tuning");
-				gui->addButton(rect< s32 >(10,306,200,348), 0, GUI_ID_STAILING, L"Stailing");
-				gui->addButton(rect< s32 >(10,360,200,402), 0, GUI_ID_CAR, L"Car");
-				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK_KARER, L"Back");
-				smgr->drawAll();
-				gui->drawAll();
-				driver->endScene();
-			}
-			// Тюнинг
-			if(context_game.menu==6)
-			{
-				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK_GARAGE, L"Back");
-				smgr->drawAll();
-				gui->drawAll();
-				driver->endScene();
-			}
-			// Стайлинг
-			if(context_game.menu==7)
-			{
-				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK_GARAGE, L"Back");
-				smgr->drawAll();
-				gui->drawAll();
-				driver->endScene();
-			}
-			// Машины
-			if(context_game.menu==8)
-			{
-				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK_GARAGE, L"Back");
+				gui->addButton(rect< s32 >(0, 726, 170, 768), 0, GUI_ID_BACK_KARER, L"Back");
 				gui->addButton(rect< s32 >(600,691,670,733), 0, GUI_ID_LAST_CAR, L"Last");
 				gui->addButton(rect< s32 >(730,691,800,733), 0, GUI_ID_NEXT_CAR, L"Next");
+				if (context_game.car == 1)
+				{
+					Hero.Hide();
+					textura = 11;
+					scale_start = vector3df(3.2, 3.2, 3.2);
+					position_start = vector3df(9950, 0, 300);
+					roat_start = vector3df(0, -135, 0);
+					Hero.Create(textura, scale_start);
+					Hero.hero_position = position_start;
+					Hero.hero_roat = roat_start;
+					Hero.Show();
+				}
+				if (context_game.car == 2)
+				{
+					Hero.Hide();
+					textura = 2;
+					scale_start = vector3df(0.006, 0.005, 0.005);
+					position_start = vector3df(9950, 65, 300);
+					roat_start = vector3df(90, -135, 0);
+					Hero.Create(textura, scale_start);
+					Hero.hero_position = position_start;
+					Hero.hero_roat = roat_start;
+					Hero.Show();
+				}
+				if (context_game.car == 3)
+				{
+					Hero.Hide();
+					textura = 12;
+					scale_start = vector3df(150,150,150);
+					position_start = vector3df(9950, 0, 300);
+					roat_start = vector3df(0, -135, 0);
+					Hero.Create(textura, scale_start);
+					Hero.hero_position = position_start;
+					Hero.hero_roat = roat_start;
+					Hero.Show();
+				}
 				smgr->drawAll();
 				gui->drawAll();
 				driver->endScene();
 			}
+
 			// Статистика
 			if(context_game.menu==3)
 			{
@@ -379,40 +389,90 @@ int main()
 					if(sound==2) { engine->play2D("../audio/BrokenPromis.mp3"); }
 					if(sound==3) { engine->play2D("../audio/Junkie XL.mp3"); }
 					if(sound==4) { engine->play2D("../audio/Skindred.mp3"); }
-					Hero.hero_position=vector3df(10000,100,85);
-					Hero.hero_roat=vector3df(90,90,0);
+					Hero.hero_position = vector3df(position_start.X, position_start.Y, position_start.Z-215);
+					Hero.hero_roat = vector3df(roat_start.X, roat_start.Y - 135, roat_start.Z);
+					Hero.node->setScale(roat_start);
 					position_camera=vector3df(10621,300,85);
 					lookat_camera=vector3df(1000,200,85);
 					speed=0;
 					read=0;
+					time=50;
 					new_game=0;
 					return_game=1;
 					room->setVisible(false);
 					node->setVisible(true);
-					streat_car.Create(0, vector3df(1.45,1.45,1.45)); // Ferrari 0.2,0.15,0.175
-					streat_car.Show_Enemy(6000,0,0,5000,180);
+					bot.Create(0, vector3df(1.45, 1.45, 1.45)); // Ferrari 0.2,0.15,0.175
+					bot.Show();
+					Old_time_game = 0;
+					time_game = device->getTimer();
+
+					FILE *Move = fopen("../bot_move.txt", "rt");
+					Bot_posX[0] = bot.bot_position.X;
+					Bot_posZ[0] = bot.bot_position.Z;
+					Bot_roat[0] = bot.bot_roat.Y;
+					for (int i = 1; i < 32; i++)
+					{
+						fscanf(Move, "%d%d%d", &Bot_posX[i], &Bot_posZ[i], &Bot_roat[i]);
+					}
+					fclose(Move);
 				}
 
-				if(streat_car.node!=NULL)
+				if (bot.bot_position.X == Bot_posX[num] && num<31)
+				{
+					bot_MoveX = (Bot_posX[num+1] - Bot_posX[num]);
+					bot_MoveX /= 200;
+					bot_MoveZ = (Bot_posZ[num+1] - Bot_posZ[num]);
+					bot_MoveZ /= 200;
+					num++;
+				}
+				if (bot_roat < Bot_roat[num])
+				{
+					bot_roat += 0.5;
+					bot.node->setRotation(vector3df(0, bot_roat, 0));
+					bot.bot_roat.Y = bot_roat;
+				}
+				if (bot_roat > Bot_roat[num])
+				{
+					bot_roat -= 0.5;
+					bot.node->setRotation(vector3df(0, bot_roat, 0));
+					bot.bot_roat.Y = bot_roat;
+				}
+				bot.Move(bot_MoveX, 0, bot_MoveZ);
+
+				if (Hero.hero_position.X <= -54000 && Hero.hero_position.Z>25500 && Hero.hero_position.Z<28500)
+				{
+					gui->addStaticText(L"								Finish", rect<s32>(650, 450, 750, 500), false, true, (IGUIElement*)0, -1, true);
+					win = 1;
+					if (speed>0)
+					{
+						speed -= 0.3;
+					}
+					else
+						speed = 0;
+				}
+
+				if(bot.node!=NULL)
 				{
 					bboxHero =  Hero.node->getTransformedBoundingBox();
 					bboxHero.MinEdge+=Hero.node->getPosition();
 					bboxHero.MaxEdge+=Hero.node->getPosition();
-					bboxStreetCar =  streat_car.node->getTransformedBoundingBox();
-					bboxStreetCar.MinEdge+=streat_car.node->getPosition();
-					bboxStreetCar.MaxEdge+=streat_car.node->getPosition();
+					bboxStreetCar =  bot.node->getTransformedBoundingBox();
+					bboxStreetCar.MinEdge+=bot.node->getPosition();
+					bboxStreetCar.MaxEdge+=bot.node->getPosition();
 
 					if(bboxHero.intersectsWithBox(bboxStreetCar)) { speed=0; }
 				}
 
-				Hero.Move(speed*MoveX,0,speed*MoveZ);
+				Hero.Move(speed*MoveX, 0, speed*MoveZ, textura, scale_start);
 				lookat_camera.X+=MoveX*speed;
 				lookat_camera.Z+=MoveZ*speed;
 				camera->setPosition(vector3df(position_camera.X+=speed*MoveX,position_camera.Y,position_camera.Z+=speed*MoveZ));
+
 				if(speed<=0)
 				{
 					dvigatel->stopAllSounds(); 
-					gui->addStaticText(L"	0",rect<s32>(125,670,175,710), false , true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"0",rect<s32>(107,670,128,710), false , true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"M/H",rect<s32>(128,670,148,710), false , true, (IGUIElement*)0, -1, true);
 					IGUIButton *BACK = gui->addButton(rect<s32>(1300,5,1360,30), 0, GUI_ID_MEIN_MENU, L"Menu");
 				}
 
@@ -422,14 +482,24 @@ int main()
 					speadXCeloe=speed*3;
 					gui->clear();
 					stringw Speed(speadXCeloe);
-					gui->addStaticText(Speed.c_str(),rect<s32>(125,670,175,710), false , true, (IGUIElement*)0, -1, true);
+					stringw time(timeCeloe);
+					gui->addStaticText(Speed.c_str(),rect<s32>(107,670,128,710), false , true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"M/H",rect<s32>(128,670,148,710), false , true, (IGUIElement*)0, -1, true);
+					//env->addStaticText(time.c_str(),rect<s32>(670,50,730,100), false , true, (IGUIElement*)0, -1, true);
 					IGUIButton *BACK = gui->addButton(rect<s32>(1300,5,1360,30), 0, GUI_ID_MEIN_MENU, L"Menu");
+
 				}
 				if(speed<0)
 				{
 					speed+=0.02;
 				}
 				//Кнопки
+				if (receiver.IsKeyDown(irr::KEY_KEY_G))
+				{
+					cout << "pos X = " << Hero.hero_position.X << endl;
+					cout << "pos Z = " << Hero.hero_position.Z << endl;
+					cout << "roat = "  << roat << endl;
+				}
 				if(receiver.IsKeyDown(irr::KEY_KEY_W))
 				{
 					if(speed<10)
@@ -456,7 +526,7 @@ int main()
 				if(receiver.IsKeyDown(irr::KEY_KEY_A))
 				{
 					roat-=1;
-					Hero.node->setRotation(vector3df(93,roat,0)); // поворот модели на месте
+					Hero.node->setRotation(vector3df(roat_start.X,roat,roat_start.Z)); // поворот модели на месте
 					Hero.hero_roat.Y-=1; // для поворота при движении
 					if(Hero.hero_roat.Y==-271)
 					{
@@ -542,7 +612,7 @@ int main()
 				if(receiver.IsKeyDown(irr::KEY_KEY_D))
 				{
 					roat+=1;
-					Hero.node->setRotation(vector3df(93,roat,0)); // поворот модели на месте
+					Hero.node->setRotation(vector3df(roat_start.X, roat, roat_start.Z)); // поворот модели на месте
 					Hero.hero_roat.Y+=1; // для поворота при движении
 					if(Hero.hero_roat.Y==360)
 					{

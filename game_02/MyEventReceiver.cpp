@@ -9,6 +9,7 @@ MyEventReceiver::MyEventReceiver(SAppContext& Context) : Context(Context)
 	{
 		KeyIsDown[i] = false;
 	}
+	Context.car = 1;
 }
 
 bool MyEventReceiver::OnEvent(const SEvent& event)
@@ -67,24 +68,6 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 				return true;
 				break;
 
-				case GUI_ID_TUNING:
-				Context.gui->clear();
-				Context.menu=6;
-				return true;
-				break;
-
-				case GUI_ID_STAILING:
-				Context.gui->clear();
-				Context.menu=7;
-				return true;
-				break;
-
-				case GUI_ID_CAR:
-				Context.gui->clear();
-				Context.menu=8;
-				return true;
-				break;
-
 				case GUI_ID_QUIT:
 				Context.device->closeDevice();
 				Context.menu=100;
@@ -103,12 +86,6 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 				return true;
 				break;
 
-				case GUI_ID_BACK_GARAGE:
-				Context.gui->clear();
-				Context.menu=5;
-				return true;
-				break;
-
 				case GUI_ID_SET:
 				Context.gui->clear();
 				Context.menu=12;
@@ -118,6 +95,16 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 				case GUI_ID_MEIN_MENU:
 				Context.gui->clear();
 				Context.menu=0;
+				return true;
+				break;
+
+				case GUI_ID_LAST_CAR:
+				Context.car--;
+				return true;
+				break;
+
+				case GUI_ID_NEXT_CAR:
+				Context.car++;
 				return true;
 				break;
 
