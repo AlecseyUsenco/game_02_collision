@@ -38,6 +38,7 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 				case GUI_ID_FAST_START:
 				Context.gui->clear();
 				Context.menu=2;
+				Context.track = 1;
 				Context.old_menu=0;
 				return true;
 				break;
@@ -56,15 +57,29 @@ bool MyEventReceiver::OnEvent(const SEvent& event)
 				return true;
 				break;
 
-				case GUI_ID_START:
-				Context.gui->clear();
-				Context.menu=2;
-				return true;
-				break;
-
 				case GUI_ID_GARAGE:
 				Context.gui->clear();
 				Context.menu=5;
+				return true;
+				break;
+
+				case GUI_ID_CHOISE:
+				Context.gui->clear();
+				Context.menu = 6;
+				return true;
+				break;
+
+				case GUI_ID_TRACK1:
+				Context.gui->clear();
+				Context.menu = 2;
+				Context.track = 1;
+				return true;
+				break;
+
+				case GUI_ID_TRACK2:
+				Context.gui->clear();
+				Context.menu = 2;
+				Context.track = 2;
 				return true;
 				break;
 

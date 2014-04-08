@@ -15,6 +15,7 @@ struct SAppContext
 	s32 comboBox;
 	s32 old_menu;
 	s32 car;
+	s32 track;
 	IGUIComboBox *VideoMode;
 };
 
@@ -25,6 +26,9 @@ enum
 	GUI_ID_STATISTIC,
 	GUI_ID_OPTIONS,
 	GUI_ID_START,
+	GUI_ID_CHOISE,
+	GUI_ID_TRACK1,
+	GUI_ID_TRACK2,
 	GUI_ID_GARAGE,
 	GUI_ID_BACK,
 	GUI_ID_BACK_KARER,

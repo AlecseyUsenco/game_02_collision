@@ -3,7 +3,7 @@
 
 Bot::Bot()
 {
-	bot_roat = vector3df(0, 0, 0);
+	bot_roat = vector3df(0, 90, 0);
 	bot_position = vector3df(10000, 50, 500);
 }
 
@@ -26,7 +26,7 @@ void Bot::Show()
 void Bot::Move(float dx, float dy, float dz)
 {
 	Hide();
-	Create(0, vector3df(1.45, 1.45, 1.45));
+	Create(1, vector3df(3.2, 3.2, 3.2));
 	BotPosition(dx, dy, dz);
 	Show();
 }

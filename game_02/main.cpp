@@ -36,17 +36,17 @@ extern IVideoDriver* driver=device->getVideoDriver();
 int main()
 {
 	////////////////////////////////////////////////////////////////////
-	int car = 1, textura=11, timeCeloe = 50, menu = 0, sound, return_game = 0, lastFPS = -1, fps, OptionsCreate = 0, win = 0, Bot_posX[31], Bot_posZ[31], Bot_roat[31];
-	int speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0, num=0, num_sled=0, delitel=0;
-	float time, roat = 90, i = 0, speed = 0, spead_old = 0, MoveX = -1, MoveZ = 0, RXA = 621, RZA = 0, lookat_cameraOld = 0, bot_MoveX = 0, bot_MoveZ = 0, bot_roat = 0;
+	int garageCreate=0, money = 15000, cena=40000, sounds = 0, bot_delete = 0, choise_track = 0, car = 1, textura = 9, timeCeloe = 50, menu = 0, sound = 1, return_game = 0, lastFPS = -1, fps, OptionsCreate = 0, win = 0, Bot_posX[31], Bot_posZ[31], Bot_roat[31];
+	int carChoise=1, car_old=0, speadXCeloe=0, Old_roat=0, read=0, start=0, total_start, total_vin, start_sprint, vin_sprint, start_drag, vin_drag, new_game=1, SetIdent=0, num=0, num_sled=0, delitel=0;
+	float time, roat = 90, i = 0, speed = 0, spead_old = 0, MoveX = -1, MoveZ = 0, RXA = 621, RZA = 0, lookat_cameraOld = 0, bot_MoveX = 0, bot_MoveZ = 0, bot_roat = 90;
 	char buf[256];
 	line3d<f32>ray;
-	vector3df position_camera, lookat_camera, intersection, scale_start(3.2, 3.2, 3.2), roat_start(0, -135, 0), position_start(9950, 0, 300);
+	vector3df position_camera, lookat_camera, intersection, scale_start(150, 150, 150), roat_start(0, -135, 0), position_start(9950, 0, 300);
 	triangle3df hitTriangle;
 	f32 GammaValue=1.f;
 	Hero Hero;
 	Bot bot;
-	Hero.Create(11, vector3df(3.2, 3.2, 3.2)); // 2, vector3df(0.006, 0.005, 0.005)
+	Hero.Create(9, vector3df(150, 150, 150)); // 2, vector3df(0.006, 0.005, 0.005)
 	aabbox3d<float> bboxHero;
 	aabbox3d<float> bboxStreetCar;
 	ISceneNode *selectedSceneNode;
@@ -60,7 +60,7 @@ int main()
 	ISoundEngine* dvigatel = createIrrKlangDevice();
 	ISoundEngine* tormoz = createIrrKlangDevice();
 
-	engine->play2D("../audio/Undeground.mp3", true);
+	if (sounds == 1) { engine->play2D("../audio/Junkie XL.mp3", true); }
 	SIrrlichtCreationParameters deviceParam;
 	deviceParam.WindowSize.Width=1366;
 	deviceParam.WindowSize.Height=768;
@@ -114,9 +114,10 @@ int main()
 			smgr=device->getSceneManager();
 			gui=device->getGUIEnvironment();
 			driver=device->getVideoDriver();
-			engine->play2D("../audio/Undeground.mp3", true);
+			if (sounds == 1 ) { engine->play2D("../audio/Junkie XL.mp3", true); }
 			modeList = device->getVideoModeList();
 			context_game.menu=0;
+			new_game = 1;
 		}
 
 		speadXCeloe=0, Old_roat=0, read=0, start=0, new_game=1, SetIdent=0;
@@ -182,21 +183,6 @@ int main()
 			// Главное меню
 			if(context_game.menu==0)
 			{
-				if(return_game==1)
-				{
-					new_game=1;
-					engine->stopAllSounds();
-					engine->play2D("../audio/Undeground.mp3", true);
-					room->setVisible(true);
-					node->setVisible(false);
-					Hero.hero_position=vector3df(9950,0,300);
-					Hero.hero_roat=vector3df(0,-135,0);
-					Hero.node->setRotation(vector3df(0,-135,0));
-					position_camera=vector3df(10721,220,300);
-					lookat_camera=vector3df(1000,300,300);
-					return_game=0;
-				}
-
 				driver->beginScene(true, true, SColor(255,255,255,255));
 				gui->addButton(rect< s32 >(10,254,200,296), 0, GUI_ID_KARER, L"Karer");
 				gui->addButton(rect< s32 >(10,306,200,348), 0, GUI_ID_FAST_START, L"Fast Start");
@@ -210,26 +196,58 @@ int main()
 			// Карьера
 			if(context_game.menu==1)
 			{
+				if (return_game == 1)
+				{
+					gui->clear();
+					new_game = 1;
+					engine->stopAllSounds();
+					dvigatel->stopAllSounds();
+					tormoz->stopAllSounds();
+					device->getCursorControl()->setVisible(true);
+					bot.Hide();
+					if (sounds == 1) { engine->play2D("../audio/Junkie XL.mp3", true); }
+					room->setVisible(true);
+					node->setVisible(false);
+					Hero.Hide();
+					Hero.Create(textura, scale_start);
+					Hero.hero_position = vector3df(9950, 0, 300);
+					Hero.hero_roat = vector3df(0, -135, 0);
+					Hero.node->setRotation(vector3df(0, -135, 0));
+					Hero.Show();
+					position_camera = vector3df(10721, 220, 300);
+					lookat_camera = vector3df(1000, 300, 300);
+					return_game = 0;
+				}
 				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addButton(rect< s32 >(10,252,200,296), 0, GUI_ID_START, L"Start");
+				gui->addButton(rect< s32 >(10,252,200,296), 0, GUI_ID_CHOISE, L"Start");
 				gui->addButton(rect< s32 >(10,306,200,348), 0, GUI_ID_GARAGE, L"Garage");
 				gui->addButton(rect< s32 >(0,726,170,768), 0, GUI_ID_BACK, L"Back");
 				smgr->drawAll();
 				gui->drawAll();
 				driver->endScene();
 			}
-			
+
 			// Гараж
 			if(context_game.menu==5)
 			{
 				driver->beginScene(true, true, SColor(255,255,255,255));
-				gui->addButton(rect< s32 >(0, 726, 170, 768), 0, GUI_ID_BACK_KARER, L"Back");
-				gui->addButton(rect< s32 >(600,691,670,733), 0, GUI_ID_LAST_CAR, L"Last");
-				gui->addButton(rect< s32 >(730,691,800,733), 0, GUI_ID_NEXT_CAR, L"Next");
+				if (carChoise != car_old)
+				{
+					gui->clear();
+					gui->addButton(rect< s32 >(0, 726, 170, 768), 0, GUI_ID_BACK_KARER, L"Back");
+					gui->addButton(rect< s32 >(600, 691, 670, 733), 0, GUI_ID_LAST_CAR, L"Last");
+					gui->addButton(rect< s32 >(730, 691, 800, 733), 0, GUI_ID_NEXT_CAR, L"Next");
+					stringw Money(money), Cena(cena);
+					gui->addStaticText(L"	You Money", rect<s32>(530, 40, 600, 70), false, true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(Money.c_str(), rect<s32>(610, 40, 670, 70), false, true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"	Cena", rect<s32>(730, 40, 800, 70), false, true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(Cena.c_str(), rect<s32>(810, 40, 870, 70), false, true, (IGUIElement*)0, -1, true);
+					car_old = carChoise;
+				}
 				if (context_game.car == 1)
 				{
 					Hero.Hide();
-					textura = 11;
+					textura = 1, carChoise = 1, cena = 40000;
 					scale_start = vector3df(3.2, 3.2, 3.2);
 					position_start = vector3df(9950, 0, 300);
 					roat_start = vector3df(0, -135, 0);
@@ -241,10 +259,10 @@ int main()
 				if (context_game.car == 2)
 				{
 					Hero.Hide();
-					textura = 2;
-					scale_start = vector3df(0.006, 0.005, 0.005);
-					position_start = vector3df(9950, 65, 300);
-					roat_start = vector3df(90, -135, 0);
+					textura = 8, carChoise = 2, cena = 37000;
+					scale_start = vector3df(150, 150, 150);
+					position_start = vector3df(9950, 0, 300);
+					roat_start = vector3df(0, -135, 0);
 					Hero.Create(textura, scale_start);
 					Hero.hero_position = position_start;
 					Hero.hero_roat = roat_start;
@@ -253,8 +271,20 @@ int main()
 				if (context_game.car == 3)
 				{
 					Hero.Hide();
-					textura = 12;
-					scale_start = vector3df(150,150,150);
+					textura = 3, carChoise = 3, cena = 120000;
+					scale_start = vector3df(150, 150, 150);
+					position_start = vector3df(9950, 0, 300);
+					roat_start = vector3df(0, -135, 0);
+					Hero.Create(textura, scale_start);
+					Hero.hero_position = position_start;
+					Hero.hero_roat = roat_start;
+					Hero.Show();
+				}
+				if (context_game.car == 4)
+				{
+					Hero.Hide();
+					textura = 9, carChoise = 4, cena = 150000;
+					scale_start = vector3df(150, 150, 150);
 					position_start = vector3df(9950, 0, 300);
 					roat_start = vector3df(0, -135, 0);
 					Hero.Create(textura, scale_start);
@@ -266,6 +296,7 @@ int main()
 				gui->drawAll();
 				driver->endScene();
 			}
+			if (context_game.menu != 5 && car_old==carChoise) { car_old=0; }
 
 			// Статистика
 			if(context_game.menu==3)
@@ -361,13 +392,28 @@ int main()
 				deviceParam.WindowSize.Height=receiver.height;
 				context_game.comboBox==0;
 			}
-
 			// Установка разрешение
-			if(context_game.menu==12)
+			if (context_game.menu == 12)
 			{
 				device->closeDevice();
 			}
-			
+			//Выбор трассы
+			if (context_game.menu == 6)
+			{
+				driver->beginScene(true, true, SColor(255, 255, 255, 255));
+				if (choise_track == 0)
+				{
+					gui->addButton(rect< s32 >(490, 252, 680, 452), 0, GUI_ID_TRACK1, L"Track 1");
+					gui->addButton(rect< s32 >(700, 252, 890, 452), 0, GUI_ID_TRACK2, L"Track 2");
+					gui->addButton(rect< s32 >(0, 726, 170, 768), 0, GUI_ID_BACK_KARER, L"Back");
+					choise_track = 1;
+				}
+				smgr->drawAll();
+				gui->drawAll();
+				driver->endScene();
+			}
+			if (context_game.menu != 6 && choise_track==1) { choise_track = 0; }
+
 			// Игра
 			if(context_game.menu==2)
 			{
@@ -384,28 +430,43 @@ int main()
 				if(new_game==1)
 				{
 					engine->stopAllSounds();
-					sound = rand() % 4;
-					if(sound==1) { engine->play2D("../audio/Static_X.mp3"); }
-					if(sound==2) { engine->play2D("../audio/BrokenPromis.mp3"); }
-					if(sound==3) { engine->play2D("../audio/Junkie XL.mp3"); }
-					if(sound==4) { engine->play2D("../audio/Skindred.mp3"); }
-					Hero.hero_position = vector3df(position_start.X, position_start.Y, position_start.Z-215);
-					Hero.hero_roat = vector3df(roat_start.X, roat_start.Y - 135, roat_start.Z);
-					Hero.node->setScale(roat_start);
-					position_camera=vector3df(10621,300,85);
-					lookat_camera=vector3df(1000,200,85);
-					speed=0;
-					read=0;
-					time=50;
-					new_game=0;
-					return_game=1;
+					sound = rand() % 7;
+					if (sounds == 1)
+					{
+						if (sound == 1) { engine->play2D("../audio/NFS.mp3"); }
+						if (sound == 2) { engine->play2D("../audio/Junkie XL.mp3"); }
+						if (sound == 3) { engine->play2D("../audio/Skindred.mp3"); }
+						if (sound == 4) { engine->play2D("../audio/Static_X.mp3"); }
+						if (sound == 5) { engine->play2D("../audio/BrokenPromis.mp3"); }
+						if (sound == 6) { engine->play2D("../audio/Overseer.mp3"); }
+					}
+					if (context_game.track == 1)
+					{
+						Hero.hero_position = vector3df(position_start.X-50, position_start.Y, position_start.Z - 215);
+						Hero.hero_roat = vector3df(roat_start.X, roat_start.Y - 135, roat_start.Z);
+						Hero.node->setScale(scale_start);
+						position_camera = vector3df(10521, 250, 85);
+						lookat_camera = vector3df(1000, 200, 85);
+						Hero.Show();
+					}
+					if (context_game.track == 2)
+					{
+						Hero.hero_position = vector3df(-56000, position_start.Y, 28000);
+						Hero.hero_roat = vector3df(roat_start.X, -90, roat_start.Z);
+						Hero.node->setScale(scale_start);
+						position_camera = vector3df(-56571, 250, 28000);
+						lookat_camera = vector3df(40000, 200, 28000);
+					}
 					room->setVisible(false);
 					node->setVisible(true);
-					bot.Create(0, vector3df(1.45, 1.45, 1.45)); // Ferrari 0.2,0.15,0.175
-					bot.Show();
-					Old_time_game = 0;
+					//if (bot_delete==1) { bot.Hide(); }
 					time_game = device->getTimer();
-
+					bot_delete = 1, Old_roat = 0, roat = 90, speed = 0, read = 0, new_game = 0, return_game = 1, Old_time_game = 0, choise_track = 0, 
+						MoveX = -1, MoveZ = 0, RXA = 621, RZA = 0, bot_MoveX = 0, bot_MoveZ = 0, bot_roat = 90, num = 0;
+					bot.Create(1, vector3df(3.2, 3.2, 3.2));
+					bot.bot_roat = vector3df(0, 90, 0);
+					bot.bot_position = vector3df(10000, 50, 500);
+					bot.Show();
 					FILE *Move = fopen("../bot_move.txt", "rt");
 					Bot_posX[0] = bot.bot_position.X;
 					Bot_posZ[0] = bot.bot_position.Z;
@@ -415,8 +476,9 @@ int main()
 						fscanf(Move, "%d%d%d", &Bot_posX[i], &Bot_posZ[i], &Bot_roat[i]);
 					}
 					fclose(Move);
+					device->getCursorControl()->setVisible(false);
 				}
-
+				// Bot
 				if (bot.bot_position.X == Bot_posX[num] && num<31)
 				{
 					bot_MoveX = (Bot_posX[num+1] - Bot_posX[num]);
@@ -441,15 +503,18 @@ int main()
 
 				if (Hero.hero_position.X <= -54000 && Hero.hero_position.Z>25500 && Hero.hero_position.Z<28500)
 				{
-					gui->addStaticText(L"								Finish", rect<s32>(650, 450, 750, 500), false, true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"									Finish", rect<s32>(633, 350, 733, 400), false, true, (IGUIElement*)0, -1, true);
 					win = 1;
 					if (speed>0)
 					{
-						speed -= 0.3;
+						speed -= 3;
 					}
 					else
 						speed = 0;
+						money += 100;
 				}
+
+				if (win = 1) {}
 
 				if(bot.node!=NULL)
 				{
@@ -471,22 +536,19 @@ int main()
 				if(speed<=0)
 				{
 					dvigatel->stopAllSounds(); 
-					gui->addStaticText(L"0",rect<s32>(107,670,128,710), false , true, (IGUIElement*)0, -1, true);
-					gui->addStaticText(L"M/H",rect<s32>(128,670,148,710), false , true, (IGUIElement*)0, -1, true);
-					IGUIButton *BACK = gui->addButton(rect<s32>(1300,5,1360,30), 0, GUI_ID_MEIN_MENU, L"Menu");
+					gui->addStaticText(L"0",rect<s32>(107,630,128,660), false , true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"M/H",rect<s32>(128,630,148,660), false , true, (IGUIElement*)0, -1, true);
 				}
 
 				if(speed>0)
 				{
-					//speed-=0.02;
-					speadXCeloe=speed*3;
+					speadXCeloe=speed;
 					gui->clear();
 					stringw Speed(speadXCeloe);
 					stringw time(timeCeloe);
-					gui->addStaticText(Speed.c_str(),rect<s32>(107,670,128,710), false , true, (IGUIElement*)0, -1, true);
-					gui->addStaticText(L"M/H",rect<s32>(128,670,148,710), false , true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(Speed.c_str(),rect<s32>(107,630,128,660), false , true, (IGUIElement*)0, -1, true);
+					gui->addStaticText(L"M/H",rect<s32>(128,630,148,660), false , true, (IGUIElement*)0, -1, true);
 					//env->addStaticText(time.c_str(),rect<s32>(670,50,730,100), false , true, (IGUIElement*)0, -1, true);
-					IGUIButton *BACK = gui->addButton(rect<s32>(1300,5,1360,30), 0, GUI_ID_MEIN_MENU, L"Menu");
 
 				}
 				if(speed<0)
@@ -500,18 +562,23 @@ int main()
 					cout << "pos Z = " << Hero.hero_position.Z << endl;
 					cout << "roat = "  << roat << endl;
 				}
+				if (receiver.IsKeyDown(irr::KEY_ESCAPE))
+				{
+					context_game.menu = 1;
+				}
 				if(receiver.IsKeyDown(irr::KEY_KEY_W))
 				{
-					if(speed<10)
+					if(speed<15)
 					{ 
-						speed+=0.04; 
-						if(speed<=0.05)
+						speed+=0.17; 
+						if(speed<=0.18)
 						{
 							dvigatel->play2D("../audio/dvigatel.mp3",true);
+							dvigatel->setSoundVolume(0.2);
 						}
 					}
-					if(speed>=10 && speed<18) { speed+=0.03; }
-					if(speed>=18 && speed<35) {	speed+=0.02; }
+					if(speed>=15 && speed<50) { speed+=0.18; }
+					if(speed>=50 && speed<140) {	speed+=0.2; }
 					else {speed+=0.001; }
 				}
 
